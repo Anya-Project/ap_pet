@@ -10,7 +10,6 @@ An advanced Pet System for FiveM servers, supporting both QBCore and ESX framewo
 - **Target System:** Supports both `ox_target` and `qb-target`.
 - **Multi-Language (Locale):** Supports English (`en`) and Indonesian (`id`).
 - **Needs System:** Pets have hunger, thirst, and health that deplete over time.
-- **Custom UI / UI Bridge:** Supports `ox_lib`, `qb-menu`, and `lation_ui` for a modern interface. Displays detailed pet status (Health, Hunger, Thirst, Status) on the screen.
 - **Healing & Revive System:** Players can use medkits to heal their pets, or revivers if the pet dies.
 - **K9 Exclusive Actions:** Contraband (illegal items) checking and target attacking for K9 Police units.
 - **Low Resmon:** Highly optimized script utilizing modern target systems and efficient event management.
@@ -39,8 +38,8 @@ Ensure the following resources are installed and running on your server:
 
 1. `oxmysql` (Required for the database)
 2. `ox_lib` (Required for UI Menus, Notifications, Progressbars)
-3. UI System: `lation_ui` (Optional, supported via bridge)
-4. Framework: `qb-core` OR `es_extended`
+3. UI Menu & Input System: `lation_ui`, `ox_lib`, or `qb-menu`
+4. Framework: `qb-core` OR `esx` OR `qbox`
 5. Target: `ox_target` OR `qb-target`
 
 ## ⚙️ Installation

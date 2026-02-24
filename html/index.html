@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pet HUD</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="pet-hud" style="display: none">
+      <div class="hud-header">
+        <i class="fa-solid fa-paw"></i>
+        <span id="pet-name">Max</span>
+      </div>
+      <div class="hud-bars">
+        <div class="bar-container">
+          <i class="fa-solid fa-heart" style="color: #ff4d4d"></i>
+          <div class="progress-bg">
+            <div id="bar-health" class="progress-fill health-bar"></div>
+          </div>
+        </div>
+        <div class="bar-container">
+          <i class="fa-solid fa-bone" style="color: #ffa502"></i>
+          <div class="progress-bg">
+            <div id="bar-hunger" class="progress-fill hunger-bar"></div>
+          </div>
+        </div>
+        <div class="bar-container">
+          <i class="fa-solid fa-droplet" style="color: #1e90ff"></i>
+          <div class="progress-bg">
+            <div id="bar-thirst" class="progress-fill thirst-bar"></div>
+          </div>
+        </div>
+      </div>
+      <div class="hud-status" id="pet-status">
+        <i class="fa-solid fa-person-walking"></i> Following
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,7 +1,8 @@
 fx_version 'cerulean'
 game 'gta5'
 
-description 'ap_pet - Global Pet System with Needs & K9 Features'
+author 'AP Code'
+description 'Pet System with Needs & K9 Features'
 version '1.0.0'
 
 shared_scripts {

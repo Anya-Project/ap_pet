@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'AP Code'
 description 'Pet System with Needs & K9 Features'
-version '1.0.0'
+version '1.1.0'
 
 shared_scripts {
     '@ox_lib/init.lua',

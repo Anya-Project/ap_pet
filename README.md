@@ -2,11 +2,11 @@
 
 ![Banner Image](https://i.imgur.com/dZLw5fz.png)
 
-An advanced Pet System for FiveM servers, supporting both QBCore and ESX frameworks (Autodetect). This script allows players to buy, care for (feed/water), and interact with their pets. It also features a fully functional K9 unit system for Police officers (Drug Sniffing & Attacking).
+An advanced Pet System for FiveM servers. this script allows players to buy, care for (feed/water), and interact with their pets. It also features a fully functional K9 unit system for Police officers (Drug Sniffing & Attacking).
 
 ## 🚀 Key Features
 
-- **Dual Framework:** Built-in support for QBCore and ESX.
+- **Dual Framework:** Built-in support for QBCore, Qbox and ESX.
 - **Target System:** Supports both `ox_target` and `qb-target`.
 - **Multi-Language (Locale):** Supports English (`en`) and Indonesian (`id`).
 - **Needs System:** Pets have hunger, thirst, and health that deplete over time.

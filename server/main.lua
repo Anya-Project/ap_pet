@@ -18,6 +18,12 @@ RegisterNetEvent('ap_pet:server:buyPet', function(petType, petName)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     if not Player then return end
+    
+    if type(petName) ~= 'string' or string.len(petName) < 3 or string.len(petName) > 20 then
+        TriggerClientEvent('ap_pet:client:notify', src, 'error', 'Pet name is invalid.')
+        return
+    end
+    
     local citizenid = Player.PlayerData.citizenid
     local petData = Config.AvailablePets[petType]
     if not petData then return end
@@ -57,8 +63,12 @@ RegisterNetEvent('ap_pet:server:buyPet', function(petType, petName)
 end)
 
 RegisterNetEvent('ap_pet:server:savePetStatus', function(petId, h, f, t)
-    MySQL.update('UPDATE player_pets SET health = ?, hunger = ?, thirst = ? WHERE id = ?', {
-        h, f, t, petId
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    MySQL.update('UPDATE player_pets SET health = ?, hunger = ?, thirst = ? WHERE id = ? AND citizenid = ?', {
+        h, f, t, petId, Player.PlayerData.citizenid
     })
 end)
 
@@ -111,7 +121,13 @@ lib.callback.register('ap_pet:server:sniffPlayer', function(source, targetId)
 end)
 
 RegisterNetEvent('ap_pet:server:petDied', function(petId)
-    MySQL.update('UPDATE player_pets SET is_dead = 1, health = 0 WHERE id = ?', {petId})
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    MySQL.update('UPDATE player_pets SET is_dead = 1, health = 0 WHERE id = ? AND citizenid = ?', {
+        petId, Player.PlayerData.citizenid
+    })
 end)
 
 RegisterNetEvent('ap_pet:server:revivePet', function(petId)
@@ -121,9 +137,16 @@ RegisterNetEvent('ap_pet:server:revivePet', function(petId)
     
     local item = Player.Functions.GetItemByName('pet_revive')
     if item and item.amount > 0 then
-        Player.Functions.RemoveItem('pet_revive', 1)
-        MySQL.update('UPDATE player_pets SET is_dead = 0, health = 100, hunger = 100, thirst = 100 WHERE id = ?', {petId})
-        TriggerClientEvent('ap_pet:client:notify', src, 'success', Lang('revive_success'))
+        local affectedRows = MySQL.update.await('UPDATE player_pets SET is_dead = 0, health = 100, hunger = 100, thirst = 100 WHERE id = ? AND citizenid = ?', {
+            petId, Player.PlayerData.citizenid
+        })
+        
+        if affectedRows > 0 then
+            Player.Functions.RemoveItem('pet_revive', 1)
+            TriggerClientEvent('ap_pet:client:notify', src, 'success', Lang('revive_success'))
+        else
+            TriggerClientEvent('ap_pet:client:notify', src, 'error', 'Pet not found or not yours.')
+        end
     else
         TriggerClientEvent('ap_pet:client:notify', src, 'error', Lang('need_revive'))
     end

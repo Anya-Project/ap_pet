@@ -4,7 +4,6 @@ activePet = nil
 activePetData = nil
 isHUDVisible = false
 
--- Function to load models
 local function loadModel(model)
     local waitTime = 0
     RequestModel(model)
@@ -16,7 +15,6 @@ local function loadModel(model)
     return true
 end
 
--- Open Pet Main Menu
 RegisterNetEvent('ap_pet:client:openMenu', function()
     local pets = lib.callback.await('ap_pet:server:getPlayerPets', false)
     
@@ -149,7 +147,6 @@ function DeletePetFromMenu(pet)
         if confirmed then
             TriggerServerEvent('ap_pet:server:deletePet', pet.id)
             
-            -- Jika pet yang dihapus kebetulan sedang aktif dikeluarkan
             if activePetData and activePetData.id == pet.id then
                 local pedToDelete = activePet
                 local petNameToDelete = activePetData.pet_name
@@ -199,8 +196,6 @@ function OpenPetShopMenu()
     UI.ShowMenu('ap_pet_shop_menu', Lang('pet_shop_title'), options)
 end
 
-
--- SPAWN PET LOGIC
 function SpawnPet(petData)
     if activePet then DespawnPet() end
     
@@ -222,16 +217,9 @@ function SpawnPet(petData)
     SetPedCanRagdoll(activePet, true)
     SetBlockingOfNonTemporaryEvents(activePet, true)
     SetPedFleeAttributes(activePet, 0, 0)
-    
-    -- Sync health
-    SetEntityHealth(activePet, 200) -- Default max FiveM health
-    -- (In future we will scale the literal Health bar to petData.health)
-    
+    SetEntityHealth(activePet, 200)
     UI.Notify('success', Lang('pet_called', petData.pet_name))
-    
     TaskFollowToOffsetOfEntity(activePet, playerPed, 2.0, -2.0, 0.0, 7.0, -1, 1.0, true)
-    
-    -- Show UI
     SendNUIMessage({ action = "showHUD" })
     SendNUIMessage({
         action = "updateHUD",
@@ -243,7 +231,6 @@ function SpawnPet(petData)
     })
     isHUDVisible = true
     
-    -- Setup Target
     if Config.TargetSystem == 'ox' or (Config.TargetSystem == 'autodetect' and GetResourceState('ox_target') == 'started') then
         exports.ox_target:addLocalEntity(activePet, {
             {
@@ -256,7 +243,6 @@ function SpawnPet(petData)
             }
         })
         
-        -- Tambahkan Target ke semua Ped lain untuk opsi K9 Attack/Sniff jika is_k9
         if petData.is_k9 == 1 or petData.is_k9 == true then
             exports.ox_target:addGlobalPed({
                 {
@@ -264,7 +250,6 @@ function SpawnPet(petData)
                     icon = 'fas fa-magnifying-glass',
                     label = Lang('k9_sniff'),
                     canInteract = function(entity)
-                        -- Cek 1: Pet dipanggil, Cek 2: Target bukan diri sendiri, Cek 3: Target bukan pet itu sendiri
                         return activePet and entity ~= PlayerPedId() and entity ~= activePet and IsEntityAPed(entity)
                     end,
                     onSelect = function(data)
@@ -305,7 +290,6 @@ function SpawnPet(petData)
                         icon = 'fas fa-magnifying-glass',
                         label = Lang('k9_sniff'),
                         canInteract = function(entity)
-                            -- Cek 1: Pet dipanggil, Cek 2: Target bukan diri sendiri, Cek 3: Target bukan pet itu sendiri
                             return activePet and entity ~= PlayerPedId() and entity ~= activePet and IsEntityAPed(entity)
                         end,
                         action = function(entity)
@@ -327,17 +311,13 @@ function SpawnPet(petData)
             })
         end
     end
-    
-    -- Start Needs Loop
     StartNeedsLoop()
 end
 
--- DESPAWN PET LOGIC
 function DespawnPet()
     if DoesEntityExist(activePet) then
         if Config.TargetSystem == 'ox' or (Config.TargetSystem == 'autodetect' and GetResourceState('ox_target') == 'started') then
             exports.ox_target:removeLocalEntity(activePet, 'pet_interact_' .. activePet)
-            -- Untuk ox_target global ped remove (belum disupport luas di docs lama, tapi bisa diakali via model)
         elseif Config.TargetSystem == 'qb' or (Config.TargetSystem == 'autodetect' and GetResourceState('qb-target') == 'started') then
             exports['qb-target']:RemoveTargetEntity(activePet, Lang('interact_label', activePetData.pet_name))
             if activePetData.is_k9 == 1 or activePetData.is_k9 == true then
@@ -345,7 +325,6 @@ function DespawnPet()
             end
         end
         
-        -- Save current status to DB
         if activePetData then
             TriggerServerEvent('ap_pet:server:savePetStatus', activePetData.id, activePetData.health, activePetData.hunger, activePetData.thirst)
         end
@@ -361,18 +340,16 @@ function DespawnPet()
     UI.Notify('inform', Lang('pet_returned'))
 end
 
--- LOOP KEBUTUHAN & HEALTH CHECK
 function StartNeedsLoop()
     CreateThread(function()
         local nextNeedsTick = GetGameTimer() + Config.PetNeeds.LossRate.TickRate
-        local lastHp = -1 -- Cache HP to prevent spamming NUI
+        local lastHp = -1
         
         while activePet do
-            Wait(1000) -- Check health every 1 second
+            Wait(1000)
             
             if activePet and activePetData then
-                -- HP SYNC LOGIC
-                local currentHp = GetEntityHealth(activePet) -- Scale varies by model, usually 100-200. Max 200.
+                local currentHp = GetEntityHealth(activePet)
                 if currentHp > 0 then
                     local calculatedHp = math.floor((currentHp / 200) * 100)
                     if calculatedHp > 100 then calculatedHp = 100 end
@@ -388,7 +365,6 @@ function StartNeedsLoop()
                     end
                 end
                 
-                -- Death check dari tembakan/damage physical
                 if currentHp <= 0 or (currentHp <= 100 and IsEntityDead(activePet)) then
                     activePetData.health = 0
                     SendNUIMessage({ action = "updateHUD", health = 0 })
@@ -400,26 +376,21 @@ function StartNeedsLoop()
                     DespawnPet()
                 end
                 
-                -- HUNGER/THIRST LOGIC (Tick Rate Based)
                 if GetGameTimer() > nextNeedsTick then
-                    -- Reduce Hunger & Thirst
                     activePetData.hunger = math.max(0, activePetData.hunger - Config.PetNeeds.LossRate.Hunger)
                     activePetData.thirst = math.max(0, activePetData.thirst - Config.PetNeeds.LossRate.Thirst)
                     
-                    -- Reduce health if starving/dehydrated (simulated damage)
                     if activePetData.hunger <= 0 or activePetData.thirst <= 0 then
                         local newHp = math.max(0, currentHp - 10)
                         SetEntityHealth(activePet, newHp)
                     end
                     
-                    -- Update UI
                     SendNUIMessage({
                         action = "updateHUD",
                         hunger = activePetData.hunger,
                         thirst = activePetData.thirst
                     })
                     
-                    -- Save state
                     TriggerServerEvent('ap_pet:server:savePetStatus', activePetData.id, activePetData.health, activePetData.hunger, activePetData.thirst)
                     
                     nextNeedsTick = GetGameTimer() + Config.PetNeeds.LossRate.TickRate
@@ -429,7 +400,6 @@ function StartNeedsLoop()
     end)
 end
 
--- Clean up on player disconnect or resource stop
 local shopPeds = {}
 
 AddEventHandler('onResourceStop', function(resourceName)
@@ -443,12 +413,10 @@ AddEventHandler('onResourceStop', function(resourceName)
     end
 end)
 
--- PET SHOP LOCATIONS LOGIC
 CreateThread(function()
     if not Config.PetShop or not Config.PetShop.Locations then return end
     
     for i, shop in ipairs(Config.PetShop.Locations) do
-        -- 1. Create Blip
         if shop.blip.enable then
             local blip = AddBlipForCoord(shop.coords.x, shop.coords.y, shop.coords.z)
             SetBlipSprite(blip, shop.blip.sprite)
@@ -461,7 +429,6 @@ CreateThread(function()
             EndTextCommandSetBlipName(blip)
         end
         
-        -- 2. Create Ped
         local model = GetHashKey(shop.pedModel)
         RequestModel(model)
         while not HasModelLoaded(model) do Wait(0) end
@@ -472,7 +439,6 @@ CreateThread(function()
         FreezeEntityPosition(ped, true)
         table.insert(shopPeds, ped)
         
-        -- 3. Add Target Interaction
         if Config.TargetSystem == 'ox' or (Config.TargetSystem == 'autodetect' and GetResourceState('ox_target') == 'started') then
             exports.ox_target:addLocalEntity(ped, {
                 {

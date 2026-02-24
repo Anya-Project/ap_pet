@@ -10,9 +10,6 @@ CreateThread(function()
     end
 end)
 
--- ===========================
--- MENU BRIDGE
--- ===========================
 function UI.ShowMenu(id, title, options)
     if Config.UI.Menu == 'ox_lib' then
         lib.registerContext({
@@ -22,7 +19,6 @@ function UI.ShowMenu(id, title, options)
         })
         lib.showContext(id)
     elseif Config.UI.Menu == 'qb-menu' then
-        -- Convert ox_lib options to qb-menu syntax
         local qbOptions = {
             {
                 header = title,
@@ -37,7 +33,7 @@ function UI.ShowMenu(id, title, options)
                 icon = v.icon,
                 params = {
                     event = 'ap_pet:client:bridgeMenuSelect',
-                    args = v.onSelect -- Since we can't pass function directly to qb-menu args safely
+                    args = v.onSelect
                 }
             }
             if not v.onSelect then btn.params = nil end
@@ -61,14 +57,10 @@ function UI.ShowMenu(id, title, options)
         })
         exports.lation_ui:showMenu(id)
     else
-        -- Place custom UI menu logic here
         print("UI Menu Not Supported: " .. Config.UI.Menu)
     end
 end
 
--- ===========================
--- DIALOG / ALERT BRIDGE
--- ===========================
 function UI.ShowAlert(header, content, cancelLabel, confirmLabel, cb)
     if Config.UI.Menu == 'ox_lib' then
         local alert = lib.alertDialog({
@@ -83,23 +75,16 @@ function UI.ShowAlert(header, content, cancelLabel, confirmLabel, cb)
         })
         if alert == 'confirm' then cb(true) else cb(false) end
     else
-        -- Fallback to standard input or standard QBCore Yes/No notify if applicable
-        -- For simplicity in generic bridge, if it's not ox_lib, we use a command approach or skip visual alert.
-        -- We strongly recommend ox_lib for Alerts
         print("Bridge Alert used non-oxlib. Auto-confirming.")
         cb(true)
     end
 end
 
--- ===========================
--- INPUT BRIDGE
--- ===========================
 function UI.ShowInput(title, inputObj, cb)
     if Config.UI.Input == 'ox_lib' then
         local input = lib.inputDialog(title, inputObj)
         cb(input)
     elseif Config.UI.Input == 'qb-input' then
-        -- simple conversion for single input
         local dialog = exports['qb-input']:ShowInput({
             header = title,
             submitText = "Submit",
@@ -125,7 +110,7 @@ function UI.ShowInput(title, inputObj, cb)
         
         for k, v in ipairs(inputObj) do
             table.insert(dialogArgs.options, {
-                type = v.type == 'input' and 'input' or 'input', -- lation uses 'input', 'number', etc. We fallback to 'input'
+                type = v.type == 'input' and 'input' or 'input',
                 label = v.label,
                 required = v.required
             })
@@ -142,9 +127,6 @@ function UI.ShowInput(title, inputObj, cb)
     end
 end
 
--- ===========================
--- NOTIFY BRIDGE
--- ===========================
 function UI.Notify(type, text)
     if Config.UI.Notify == 'ox_lib' then
         lib.notify({ type = type, description = text })
@@ -163,9 +145,6 @@ RegisterNetEvent('ap_pet:client:notify', function(type, text)
     UI.Notify(type, text)
 end)
 
--- ===========================
--- PROGRESS BAR BRIDGE
--- ===========================
 function UI.ProgressBar(duration, label, animDict, animClip, cb)
     if Config.UI.ProgressBar == 'ox_lib' then
         if lib.progressBar({
@@ -190,9 +169,9 @@ function UI.ProgressBar(duration, label, animDict, animClip, cb)
             animDict = animDict,
             anim = animClip,
             flags = 49,
-        }, {}, {}, function() -- Done
+        }, {}, {}, function()
             cb(true)
-        end, function() -- Cancel
+        end, function()
             cb(false)
         end)
     elseif Config.UI.ProgressBar == 'lation_ui' then
@@ -210,16 +189,11 @@ function UI.ProgressBar(duration, label, animDict, animClip, cb)
             cb(false)
         end
     else
-        -- Fallback
         Wait(duration)
         cb(true)
     end
 end
 
--- ===========================
--- INTERNAL EVENTS
--- ===========================
--- Untuk callback fungsi anonim di qb-menu
 RegisterNetEvent('ap_pet:client:bridgeMenuSelect', function(cbFunc)
     if type(cbFunc) == "function" then
         cbFunc()

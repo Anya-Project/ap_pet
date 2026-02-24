@@ -1,5 +1,3 @@
--- Interaction Menu Logic
-
 function OpenPetInteractMenu()
     local options = {
         {
@@ -95,14 +93,11 @@ function FeedPet(type)
                     else
                         activePetData.thirst = math.min(100, activePetData.thirst + 40)
                     end
-                    
-                    -- Update UI
                     SendNUIMessage({
                         action = "updateHUD",
                         hunger = activePetData.hunger,
                         thirst = activePetData.thirst
                     })
-                    
                     TriggerServerEvent('ap_pet:server:savePetStatus', activePetData.id, activePetData.health, activePetData.hunger, activePetData.thirst)
                     UI.Notify('success', Lang('feed_success', itemName))
                 end
@@ -131,7 +126,6 @@ function HealPet()
             
             UI.ProgressBar(4000, Lang('prog_heal'), 'amb@medic@standing@kneel@base', 'base', function(success)
                 if success then
-                    -- Second validation after progress bar (anti-exploit)
                     lib.callback('ap_pet:server:validateHeal', false, function(isValid)
                         if isValid then
                             local maxHp = GetEntityMaxHealth(activePet)
@@ -147,7 +141,7 @@ function HealPet()
                             TriggerServerEvent('ap_pet:server:savePetStatus', activePetData.id, activePetData.health, activePetData.hunger, activePetData.thirst)
                             UI.Notify('success', Lang('heal_success'))
                         else
-                            UI.Notify('error', Lang('need_revive')) -- Or any generic error
+                            UI.Notify('error', Lang('need_revive'))
                         end
                     end, activePetData.id)
                 end
@@ -216,7 +210,6 @@ function DeletePetPermanently()
         if confirmed then
             TriggerServerEvent('ap_pet:server:deletePet', activePetData.id)
             
-            -- Matikan UI dan Hapus Ped
             local pedToDelete = activePet
             local petNameToDelete = activePetData.pet_name
             activePet = nil
@@ -240,7 +233,6 @@ function DeletePetPermanently()
     end)
 end
 
--- K9 LOGIC
 RegisterNetEvent('ap_pet:client:sniffTarget', function(entity)
     if not activePet or not entity then return end
     
@@ -250,17 +242,14 @@ RegisterNetEvent('ap_pet:client:sniffTarget', function(entity)
     
     UI.Notify('inform', Lang('k9_sniffing'))
     
-    -- Suruh anjing jalan ke target
     TaskGoToEntity(activePet, targetPed, -1, 1.0, 7.0, 1073741824, 0)
     Wait(2000)
     
-    -- Animasi K9 Mengendus
     lib.requestAnimDict('missfra0_1ig_6')
     TaskPlayAnim(activePet, 'missfra0_1ig_6', 'dog_sniff_ground', 8.0, -8.0, 2000, 1, 0, false, false, false)
     Wait(2000)
     
     if isTargetPlayer then
-        -- Jika Player, cek inventory server-side
         local targetPlayerId = NetworkGetPlayerIndexFromPed(targetPed)
         local targetServerId = GetPlayerServerId(targetPlayerId)
         
@@ -274,15 +263,12 @@ RegisterNetEvent('ap_pet:client:sniffTarget', function(entity)
                 PlayAmbientSpeech1(activePet, "GENERIC_NORMAL", "SPEECH_PARAMS_FORCE")
             end
             Wait(3000)
-            -- Kembali ke owner
             TaskFollowToOffsetOfEntity(activePet, playerPed, 1.5, -1.5, 0.0, 7.0, -1, 1.0, true)
         end, targetServerId)
     else
-        -- Jika NPC biasa, defaultnya bersih (Tidak punya inventory)
         UI.Notify('inform', Lang('k9_npc_clean'))
         PlayAmbientSpeech1(activePet, "GENERIC_NORMAL", "SPEECH_PARAMS_FORCE")
         Wait(3000)
-        -- Kembali ke owner
         TaskFollowToOffsetOfEntity(activePet, playerPed, 1.5, -1.5, 0.0, 7.0, -1, 1.0, true)
     end
 end)
@@ -295,7 +281,6 @@ RegisterNetEvent('ap_pet:client:attackTarget', function(entity)
     UI.Notify('error', Lang('k9_attacking'))
     PlayAmbientSpeech1(activePet, "BARK_TENSE", "SPEECH_PARAMS_FORCE")
     
-    -- Set combat attribute for attack
     ClearPedTasks(activePet)
     SetPedRelationshipGroupHash(activePet, GetHashKey("K9"))
     SetPedRelationshipGroupHash(entity, GetHashKey("TARGET"))
@@ -303,18 +288,15 @@ RegisterNetEvent('ap_pet:client:attackTarget', function(entity)
     
     TaskCombatPed(activePet, entity, 0, 16)
     
-    -- Thread untuk Attack Logic
     CreateThread(function()
-        local attackTimeout = GetGameTimer() + 10000 -- 10 seconds max
+        local attackTimeout = GetGameTimer() + 10000
         
         while activePet do
             Wait(500)
             
-            -- Jika waktu habis atau entity target mati
             if GetGameTimer() > attackTimeout or IsEntityDead(entity) or GetEntityHealth(entity) <= 100 then
                 ClearPedTasks(activePet)
                 
-                -- Hapus Combat Relationship
                 ClearPedRelationshipGroupHash(activePet)
                 ClearPedRelationshipGroupHash(entity)
                 

@@ -1,11 +1,9 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 
--- Command to open Pet Menu
 QBCore.Commands.Add(Config.Command, "Buka Menu Pet", {}, false, function(source, args)
     TriggerClientEvent('ap_pet:client:openMenu', source)
 end)
 
--- Fetch player pets from database
 lib.callback.register('ap_pet:server:getPlayerPets', function(source)
     local Player = QBCore.Functions.GetPlayer(source)
     if not Player then return {} end
@@ -16,18 +14,13 @@ lib.callback.register('ap_pet:server:getPlayerPets', function(source)
     return result or {}
 end)
 
--- Buy a new pet
 RegisterNetEvent('ap_pet:server:buyPet', function(petType, petName)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     if not Player then return end
-    
     local citizenid = Player.PlayerData.citizenid
     local petData = Config.AvailablePets[petType]
-    
     if not petData then return end
-    
-    -- Check if it's a K9
     if petData.type == 'k9' then
         local jobName = Player.PlayerData.job.name
         local isPolice = false
@@ -42,7 +35,6 @@ RegisterNetEvent('ap_pet:server:buyPet', function(petType, petName)
             return
         end
     else
-        -- Pay for civilian pet
         if Player.PlayerData.money.cash >= petData.price then
             Player.Functions.RemoveMoney('cash', petData.price, 'buy-pet')
         elseif Player.PlayerData.money.bank >= petData.price then
@@ -52,8 +44,6 @@ RegisterNetEvent('ap_pet:server:buyPet', function(petType, petName)
             return
         end
     end
-    
-    -- Insert into database
     local is_k9 = petData.type == 'k9'
     MySQL.insert('INSERT INTO player_pets (citizenid, pet_name, model, is_k9) VALUES (?, ?, ?, ?)', {
         citizenid, petName, petData.model, is_k9
@@ -66,7 +56,6 @@ RegisterNetEvent('ap_pet:server:buyPet', function(petType, petName)
     end)
 end)
 
--- Save pet status to DB (called periodically)
 RegisterNetEvent('ap_pet:server:savePetStatus', function(petId, h, f, t)
     MySQL.update('UPDATE player_pets SET health = ?, hunger = ?, thirst = ? WHERE id = ?', {
         h, f, t, petId
@@ -149,9 +138,5 @@ RegisterNetEvent('ap_pet:server:deletePet', function(petId)
 end)
 
 lib.callback.register('ap_pet:server:validateHeal', function(source, petId)
-    -- This acts as a second check after the progress bar finishes
-    -- The item was already consumed in 'useItem', but we could implement
-    -- a more complex pending-heal queue if we wanted strictly zero exploits.
-    -- For now, we simply return true to allow the client to set the HP.
     return true
 end)

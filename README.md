@@ -1,5 +1,7 @@
 # AP Pet System (with K9 Support)
 
+![Banner Image](https://i.imgur.com/dZLw5fz.png)
+
 An advanced Pet System for FiveM servers, supporting both QBCore and ESX frameworks (Autodetect). This script allows players to buy, care for (feed/water), and interact with their pets. It also features a fully functional K9 unit system for Police officers (Drug Sniffing & Attacking).
 
 ## 🚀 Key Features
@@ -8,19 +10,38 @@ An advanced Pet System for FiveM servers, supporting both QBCore and ESX framewo
 - **Target System:** Supports both `ox_target` and `qb-target`.
 - **Multi-Language (Locale):** Supports English (`en`) and Indonesian (`id`).
 - **Needs System:** Pets have hunger, thirst, and health that deplete over time.
-- **Custom UI / HUD:** Displays detailed pet status (Health, Hunger, Thirst, Status) on the screen.
+- **Custom UI / UI Bridge:** Supports `ox_lib`, `qb-menu`, and `lation_ui` for a modern interface. Displays detailed pet status (Health, Hunger, Thirst, Status) on the screen.
 - **Healing & Revive System:** Players can use medkits to heal their pets, or revivers if the pet dies.
 - **K9 Exclusive Actions:** Contraband (illegal items) checking and target attacking for K9 Police units.
 - **Low Resmon:** Highly optimized script utilizing modern target systems and efficient event management.
 
-## 📋 Dependencies (Required)
+## � Previews
+
+### Pet HUD & Status
+
+![Pet HUD](https://i.imgur.com/ANloQ2N.png)
+
+### Pet Menu & Interaction
+
+![Pet Menu](https://i.imgur.com/W4prQnI.png)
+
+### Pet Shop Menu
+
+![Pet Shop Menu](https://i.imgur.com/OEGUJuo.png)
+
+### K9 Action (Attack & Sniff)
+
+![K9 Action](https://i.imgur.com/s7GiV0E.png)
+
+## �📋 Dependencies (Required)
 
 Ensure the following resources are installed and running on your server:
 
 1. `oxmysql` (Required for the database)
 2. `ox_lib` (Required for UI Menus, Notifications, Progressbars)
-3. Framework: `qb-core` OR `es_extended`
-4. Target: `ox_target` OR `qb-target`
+3. UI System: `lation_ui` (Optional, supported via bridge)
+4. Framework: `qb-core` OR `es_extended`
+5. Target: `ox_target` OR `qb-target`
 
 ## ⚙️ Installation
 
@@ -57,15 +78,13 @@ Open your `qb-core/shared/items.lua` (or `ox_inventory/data/items.lua` if using 
 ## 🚓 K9 Contraband System
 
 When a K9 dog sniffs another player, the script checks the target's inventory for illegal items.
-The list of illegal items can be edited in `server/main.lua` under the `illegalItems` table:
+The list of illegal items can be edited in `config.lua` under the `Config.ContrabandItems` table:
 
 ```lua
-local illegalItems = {
-    'meth',
-    'coke',
-    'weed',
-    'cokebaggy',
-    ...
+Config.ContrabandItems = {
+    'weed', 'weed_pooch', 'coke', 'coke_pooch', 'meth', 'meth_pooch',
+    'kq_meth_low', 'kq_meth_mid', 'kq_meth_high',
+    'kq_weed_joint_og_kush', 'kq_weed_joint_purple_haze', 'kq_weed_joint_white_widow', 'kq_weed_joint_blue_dream'
 }
 ```
 
@@ -76,5 +95,5 @@ Add or remove illegal item names based on your server's items!
 You can add other dog/cat ped models (e.g., custom Husky mod, Pug, etc.) by registering them in the `Config.AvailablePets` table in `config.lua`.
 
 ```lua
-['Rottweiler'] = { model = 'a_c_rottweiler', price = 5000, type = 'normal' },
+['rottweiler'] = { model = 'a_c_rottweiler', name = 'Rottweiler', price = 5000, type = 'civilian', canSit = true },
 ```

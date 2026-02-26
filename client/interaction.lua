@@ -277,15 +277,27 @@ RegisterNetEvent('ap_pet:client:attackTarget', function(entity)
     if not activePet or not entity then return end
     
     local playerPed = PlayerPedId()
+    local k9Hash    = GetHashKey("K9_PET_GROUP")
+    local tgtHash   = GetHashKey("TARGET_GROUP")
     
     UI.Notify('error', Lang('k9_attacking'))
     PlayAmbientSpeech1(activePet, "BARK_TENSE", "SPEECH_PARAMS_FORCE")
     
     ClearPedTasks(activePet)
-    SetPedRelationshipGroupHash(activePet, GetHashKey("K9"))
-    SetPedRelationshipGroupHash(entity, GetHashKey("TARGET"))
-    SetRelationshipBetweenGroups(5, GetHashKey("K9"), GetHashKey("TARGET"))
     
+    -- Daftarkan group agar relationship bisa di-set
+    AddRelationshipGroup("K9_PET_GROUP")
+    AddRelationshipGroup("TARGET_GROUP")
+    
+    -- Set relationship: K9 menyerang TARGET (5 = Hate/Attack)
+    SetRelationshipBetweenGroups(5, k9Hash, tgtHash)
+    SetRelationshipBetweenGroups(5, tgtHash, k9Hash)
+    
+    -- Terapkan group ke ped
+    SetPedRelationshipGroupHash(activePet, k9Hash)
+    SetPedRelationshipGroupHash(entity, tgtHash)
+    
+    -- Paksa pet menyerang target
     TaskCombatPed(activePet, entity, 0, 16)
     
     CreateThread(function()
@@ -297,8 +309,17 @@ RegisterNetEvent('ap_pet:client:attackTarget', function(entity)
             if GetGameTimer() > attackTimeout or IsEntityDead(entity) or GetEntityHealth(entity) <= 100 then
                 ClearPedTasks(activePet)
                 
-                ClearPedRelationshipGroupHash(activePet)
-                ClearPedRelationshipGroupHash(entity)
+                -- Reset relationship group ke default (0 = Civmale group default)
+                SetPedRelationshipGroupHash(activePet, 0)
+                SetPedRelationshipGroupHash(entity, 0)
+                
+                -- Reset relationship antar group
+                SetRelationshipBetweenGroups(5, k9Hash, tgtHash)
+                SetRelationshipBetweenGroups(5, tgtHash, k9Hash)
+                
+                -- Hapus group yang sudah dibuat
+                RemoveRelationshipGroup(k9Hash)
+                RemoveRelationshipGroup(tgtHash)
                 
                 UI.Notify('inform', Lang('k9_return'))
                 TaskFollowToOffsetOfEntity(activePet, playerPed, 1.5, -1.5, 0.0, 7.0, -1, 1.0, true)

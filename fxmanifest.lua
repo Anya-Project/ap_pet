@@ -27,7 +27,10 @@ ui_page 'html/index.html'
 files {
     'html/index.html',
     'html/style.css',
-    'html/script.js'
+    'html/script.js',
+    'peds.meta'
 }
+
+data_file 'PED_METADATA_FILE' 'peds.meta'
 
 lua54 'yes'
